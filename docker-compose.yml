@@ -1,0 +1,58 @@
+version: '2.2'
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.0.1
+    container_name: elasticsearch7
+    environment:
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
+      - node.name=d420c745fd6e
+      - cluster.initial_master_nodes=d420c745fd6e
+      - http.cors.enabled=true
+      - http.cors.allow-credentials:true
+      - http.cors.allow-origin=*
+      - http.cors.allow-headers:X-Requested-With, X-Auth-Token, Content-Type, Content-Length, Authorization, Access-Control-Allow-Headers, Accept
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - /home/tko/docker_config/elastic/data/:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9300:9300
+    networks:
+      - esnet
+    healthcheck:
+      test: curl http://localhost:9200 >/dev/null; if [[ $$? == 52 ]]; then echo 0; else echo 1; fi
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.0.1
+    ports:
+      - 5601:5601
+    networks:
+      - esnet
+    depends_on:
+      - elasticsearch
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.0.1
+    volumes:
+      - /home/tko/docker_config/logstash/pipeline/:/usr/share/logstash/pipeline/
+      - /home/tko/docker_config/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
+      #- /media/shared/work/data.csv:/usr/share/logstash/data.csv
+    networks:
+      - esnet
+    depends_on:
+      - elasticsearch
+
+volumes:
+  esdata1:
+    driver: local
+
+networks:
+  esnet:
