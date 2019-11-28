@@ -44,8 +44,7 @@ services:
     volumes:
       - /home/tko/docker_config/logstash/pipeline/:/usr/share/logstash/pipeline/
       - /home/tko/docker_config/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
-      #- /media/shared/work/data.csv:/usr/share/logstash/data.csv
-    networks:
+      networks:
       - esnet
     depends_on:
       - elasticsearch
